@@ -13,19 +13,11 @@ import type { Middleware } from 'express'
  */
 import { type createLogger as Winston, loggers, format, transports } from 'winston'
 
-import { padStart } from './internal'
-
 /**
  * Class for setting up the logger.
  * @type {Logger}
  */
 export default class Logger {
-
-  /**
-   * The file transport for the logger.
-   * @type {Object}
-   */
-  static fileTransport: Object
 
   /**
    * The log levels the logger middleware will be using.
@@ -51,17 +43,15 @@ export default class Logger {
    * @param {!Object} options - The options for the logger.
    * @param {!string} options.name - The name of the log file.
    * @param {?boolean} [options.pretty] - Pretty mode for output with colors.
-   * @param {?boolean} [options.quiet] - No output.
    * @throws {TypeError} - 'name' and 'logDir' are required options for the
    * Logger middleware!
    */
-  constructor(PopApi: any, { name, logDir, pretty, quiet }: Object): void {
+  constructor(PopApi: any, {name, logDir, pretty}: Object): void {
     const { name: debugName } = this.constructor
     PopApi.debug(`Registering ${debugName} middleware with options: %o`, {
       name,
       logDir,
-      pretty,
-      quiet,
+      pretty
     })
 
     if (!name || !logDir) {
@@ -89,14 +79,8 @@ export default class Logger {
      */
     this.logDir = logDir
 
-    // Apply the polyfill if necessary.
-    // @flow-ignore
-    String.prototype.padStart = String.prototype.padStart || padStart // eslint-disable-line no-extend-native
-
-    global.logger = this.getLogger('logger', pretty, quiet)
-    if (process.env.NODE_ENV !== 'test') {
-      PopApi.httpLogger = this.getLogger('http', pretty, quiet)
-    }
+    global.logger = this.getLogger('logger', pretty)
+    PopApi.httpLogger = this.getLogger('http', pretty)
   }
 
   /**
@@ -116,35 +100,44 @@ export default class Logger {
   }
 
   /**
-   * Update the message property and add the splat property to the info
-   * object for interpolation.
-   * @param {Object} info - The info object processed by logform.
-   * @returns {Object} - The info object with the modified message and splat
-   * property.
+   * Formatter to update the message property and add the splat property to the
+   * info object for interpolation.
+   * @returns {Function} - Format function to enrich the info object with the
+   * modified message and splat property.
    */
-  prettyPrintConsole(info: Object): Object {
-    const { level, message, timestamp } = info
-    const c = this.getLevelColor(level)
+  prettyPrintConsole(): Function {
+    const enrichFmt = format((info: Object): Object => {
+      const { level, message, ms, timestamp } = info
+      const c = this.getLevelColor(level)
 
-    info.splat = [
-      timestamp,
-      level.toUpperCase().padStart(5),
-      this.name.padStart(2),
-      process.pid,
-      message,
-    ]
-    info.message = `\x1b[0m[%s] ${c}%s:\x1b[0m %s/%d: \x1b[36m%s\x1b[0m`
+      info.splat = [
+        timestamp,
+        level.toUpperCase().padStart(5),
+        this.name.padStart(2),
+        process.pid,
+        message,
+        ms
+      ]
+      info.message = `\x1b[0m[%s] ${c}%s:\x1b[0m %s/%d: \x1b[36m%s\x1b[0m \x1b[37m%s`
 
-    return info
+      return info
+    })
+    return enrichFmt()
   }
 
   /**
-   * Get the message string from the info object.
-   * @param {Object} info - The info object processed by logform.
-   * @returns {string} - The message string to print out of the info object.
+   * Formatter to get the message string from the info object.
+   * @returns {Function} - Format function to get the message string to print
+   * out of the info object.
    */
-  _getMessage(info: Object): string {
-    return info.message
+  _getMessage(): Function {
+    const MESSAGE = Symbol.for('message')
+    const msgFmt = format((info: Object): string => {
+      info[MESSAGE] = info.message
+      return info[MESSAGE]
+    })
+
+    return msgFmt()
   }
 
   /**
@@ -154,10 +147,25 @@ export default class Logger {
   consoleFormatter(): Object {
     return format.combine(
       format.timestamp(),
-      format.printf(this.prettyPrintConsole.bind(this)),
+      format.ms(),
+      this.prettyPrintConsole(),
       format.splat(),
-      format.printf(this._getMessage),
+      this._getMessage()
     )
+  }
+
+  /**
+   * Formatter to get add the pid and the name to the info object.
+   * @returns {Function} - Format function to add the pid and name to the info
+   * object.
+   */
+  _enrichFileFormat(): Function {
+    const enrichFmt = format(info => ({
+      ...info,
+      name: this.name,
+      pid: process.pid
+    }))
+    return enrichFmt()
   }
 
   /**
@@ -167,14 +175,8 @@ export default class Logger {
   fileFormatter(): Object {
     return format.combine(
       format.timestamp(),
-      format.printf(info => {
-        Object.assign(info, {
-          name: this.name,
-          pid: process.pid,
-        })
-        return info
-      }),
-      format.json(),
+      this._enrichFileFormat(),
+      format.json()
     )
   }
 
@@ -184,10 +186,7 @@ export default class Logger {
    * @returns {Object} - A configured Console transport.
    */
   getConsoleTransport(pretty?: boolean): Object {
-    const f = pretty
-      ? this.consoleFormatter()
-      : format.simple()
-
+    const f = pretty ? this.consoleFormatter() : format.simple()
     return new transports.Console({
       name: this.name,
       format: f,
@@ -200,20 +199,16 @@ export default class Logger {
    * @returns {Object} - A configured File transport.
    */
   getFileTransport(file: string): Object {
-    if (!Logger.fileTransport) {
-      Logger.fileTransport = new transports.File({
-        level: 'warn',
-        filename: join(...[
-          this.logDir,
-          `${file}.log`,
-        ]),
-        format: this.fileFormatter(),
-        maxsize: 5242880,
-        handleExceptions: true,
-      })
-    }
-
-    return Logger.fileTransport
+    return new transports.File({
+      level: 'warn',
+      filename: join(...[
+        this.logDir,
+        `${file}.log`
+      ]),
+      format: this.fileFormatter(),
+      maxsize: 5242880,
+      handleExceptions: true
+    })
   }
 
   /**
@@ -226,6 +221,7 @@ export default class Logger {
     const id = `${this.name}-${suffix}`
 
     return loggers.add(id, {
+      silent: process.env.NODE_ENV === 'test',
       levels: this.levels,
       level: 'debug',
       exitOnError: false,
@@ -263,8 +259,7 @@ export default class Logger {
     }
 
     if (process.env.NODE_ENV === 'development') {
-      const { Console } = transports
-      logger.add(new Console({
+      logger.add(new transports.Console({
         name: this.name,
         format: format.json({
           space: 2,
@@ -279,36 +274,12 @@ export default class Logger {
   }
 
   /**
-   * Method to create a global logger object based on the properties of the
-   * Logger class.
-   * @param {?boolean} [pretty] - Pretty mode for output with colors.
-   * @param {?boolean} [quiet] - No output.
-   * @returns {Object|Winston} - A configured logger.
-   */
-  createLogger(pretty?: boolean, quiet?: boolean): Object | Winston {
-    const logger = this.createLoggerInstance('app', pretty)
-
-    if (quiet) {
-      Object.keys(this.levels).map(level => {
-        logger[level] = () => {}
-      })
-    }
-
-    return logger
-  }
-
-  /**
    * Get a logger object based on the choice.
    * @param {?string} [type] - The choice for the logger object.
    * @param {?boolean} [pretty] - Pretty mode for output with colors.
-   * @param {?boolean} [quiet] - No output.
    * @returns {Middleware|Winston|undefined} - The logger object.
    */
-  getLogger(
-    type?: string,
-    pretty?: boolean,
-    quiet?: boolean,
-  ): Middleware | Winston | void {
+  getLogger(type?: string, pretty?: boolean): Middleware | Winston | void {
     if (!type) {
       return undefined
     }
@@ -319,7 +290,7 @@ export default class Logger {
       case 'HTTP':
         return this.createHttpLogger(pretty)
       case 'LOGGER':
-        return this.createLogger(pretty, quiet)
+        return this.createLoggerInstance('app', pretty)
       default:
         return undefined
     }

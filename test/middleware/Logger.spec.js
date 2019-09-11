@@ -44,8 +44,7 @@ describe('Logger', () => {
     logger = new Logger(PopApi, {
       name,
       logDir,
-      pretty: false,
-      quiet: true
+      pretty: false
     })
   })
 
@@ -53,14 +52,11 @@ describe('Logger', () => {
   it('should create an ExpressWinston instance', () => {
     const processStub = sinon.stub(process.env, 'NODE_ENV')
     processStub.value('development')
-    const padStartStub = sinon.stub(String.prototype, 'padStart')
-    padStartStub.value(undefined)
 
     const logger = new Logger(PopApi, {
       name,
       logDir,
-      pretty: true,
-      quiet: false
+      pretty: true
     })
     expect(logger).to.be.an('object')
 
@@ -75,7 +71,6 @@ describe('Logger', () => {
     }
 
     processStub.restore()
-    padStartStub.restore()
   })
 
   /** @test {Logger#constructor} */
@@ -108,7 +103,7 @@ describe('Logger', () => {
       level: 'info',
       message: 'This is a test message'
     }
-    info = logger.prettyPrintConsole(info)
+    info = logger.prettyPrintConsole().transform(info)
 
     expect(info.level).to.be.a('string')
     expect(info.message).to.be.a('string')
@@ -117,10 +112,18 @@ describe('Logger', () => {
 
   /** @test {Logger#_getMessage} */
   it('should get the message string from the info object', () => {
-    expect(logger._getMessage({
+    expect(logger._getMessage().transform({
       level: 'info',
       message: 'This is a test message'
     })).to.be.a('string')
+  })
+
+  /** @test {Logger#_enrichFileFormat} */
+  it('should get the info from the info object', () => {
+    expect(logger._enrichFileFormat().transform({
+      level: 'info',
+      message: 'This is a test message'
+    })).to.be.an('object')
   })
 
   /** @test {Logger#consoleFormatter} */
@@ -192,16 +195,14 @@ describe('Logger', () => {
     stub.restore()
   })
 
-  /** @test {Logger#createLogger} */
-  it('should create the global logger object', () => {
-    let val = logger.createLogger(true, true)
-    expect(val).to.be.an('object')
+  /** @test {Logger#getLogger} */
+  it('should not create an instance of Winston', () => {
+    expect(logger.getLogger('logger')).to.be.an('object')
+  })
 
-    val = logger.createLogger(false, false)
-    expect(val).to.be.an('object')
-
-    val = logger.createLogger(false, true)
-    expect(val).to.be.an('object')
+  /** @test {Logger#getLogger} */
+  it('should create an instance of ExpressWinston', () => {
+    expect(logger.getLogger('http')).to.be.a('function')
   })
 
   /** @test {Logger#getLogger} */
@@ -209,15 +210,12 @@ describe('Logger', () => {
     expect(logger.getLogger()).to.be.undefined
     expect(logger.getLogger('FAULTY')).to.be.undefined
   })
-
   /**
    * Hook for tearing down the Logger tests.
    * @type {Function}
    */
   after(done => {
     winston.loggers.close()
-    Logger.fileTransport = null
-
     del([logDir])
       .then(() => done())
       .catch(done)
