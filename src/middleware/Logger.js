@@ -5,22 +5,13 @@ import { join } from 'path'
  * express.js middleware for winstonjs
  * @external {ExpressWinston} https://github.com/bithavoc/express-winston
  */
-import {
-  logger as httpLogger,
-  requestWhitelist,
-  responseWhitelist
-} from '@chrisalderson/express-winston'
+import { logger as httpLogger, requestWhitelist, responseWhitelist } from '@chrisalderson/express-winston'
 import type { Middleware } from 'express'
 /**
  * a multi-transport async logging library for node.js
  * @external {Winston} https://github.com/winstonjs/winston
  */
-import {
-  type createLogger as Winston,
-  loggers,
-  format,
-  transports
-} from 'winston'
+import { type createLogger as Winston, loggers, format, transports } from 'winston'
 
 /**
  * Class for setting up the logger.
@@ -75,7 +66,7 @@ export default class Logger {
       error: 0,
       warn: 1,
       info: 2,
-      debug: 3
+      debug: 3,
     }
     /**
      * The name of the log file.
@@ -102,7 +93,7 @@ export default class Logger {
       error: '\x1b[31m',
       warn: '\x1b[33m',
       info: '\x1b[36m',
-      debug: '\x1b[34m'
+      debug: '\x1b[34m',
     }
 
     return colors[level]
@@ -198,7 +189,7 @@ export default class Logger {
     const f = pretty ? this.consoleFormatter() : format.simple()
     return new transports.Console({
       name: this.name,
-      format: f
+      format: f,
     })
   }
 
@@ -236,8 +227,8 @@ export default class Logger {
       exitOnError: false,
       transports: [
         this.getConsoleTransport(pretty),
-        this.getFileTransport(id)
-      ]
+        this.getFileTransport(id),
+      ],
     })
   }
 
@@ -264,15 +255,15 @@ export default class Logger {
       winstonInstance: logger,
       meta: true,
       msg: this.getHttpLoggerMessage,
-      statusLevels: true
+      statusLevels: true,
     }
 
     if (process.env.NODE_ENV === 'development') {
       logger.add(new transports.Console({
         name: this.name,
         format: format.json({
-          space: 2
-        })
+          space: 2,
+        }),
       }))
 
       options.requestWhitelist = [].concat(requestWhitelist, 'body')

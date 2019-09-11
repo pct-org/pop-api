@@ -4,7 +4,7 @@
  * node.js command-line interfaces made easy
  * @external {Command} https://github.com/tj/commander.js
  */
-import Command from 'commander'
+import { Command } from 'commander'
 
 /**
  * Class The class for the command line interface.
@@ -41,12 +41,12 @@ export default class Cli {
    * @throws {TypeError} - 'name' and 'version' are required options for the Cli
    * middleware!
    */
-  constructor(PopApi: any, {argv, name, version}: Object): void {
+  constructor(PopApi: any, { argv, name, version }: Object): void {
     const { name: debugName } = this.constructor
     PopApi.debug(`Registering ${debugName} middleware with options: %o`, {
       argv,
       name,
-      version
+      version,
     })
 
     if (!name || !version) {
@@ -57,12 +57,14 @@ export default class Cli {
      * The command line parser to process the Cli inputs.
      * @type {Command}
      */
-    this.program = Command
+    this.program = new Command()
+
     /**
      * The name of the Cli program.
      * @type {string}
      */
     this.name = name
+
     /**
      * The version of the Cli program.
      * @type {string}

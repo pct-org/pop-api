@@ -14,7 +14,7 @@ import {
   Database,
   HttpServer,
   Logger,
-  Routes
+  Routes,
 } from './middleware'
 import * as utils from './utils'
 import { name } from '../package.json'
@@ -26,7 +26,7 @@ import { name } from '../package.json'
 const defaultLogDir = join(...[
   __dirname,
   '..',
-  'tmp'
+  'tmp',
 ])
 
 /**
@@ -68,19 +68,16 @@ export default class PopApi {
   /**
    * The setup for the base framework.
    * @param {!Object} options - The options for the framework.
-   * @param {!Express} [options.app=PopApi.app] - The web framework instance you
-   * want to use.
+   * @param {!Express} [options.app=PopApi.app] - The web framework instance you want to use.
    * @param {!Array<Object>} options.controllers - The controllers to register.
    * @param {!string} options.name - The name for your API.
    * @param {!string} options.version - The version of your API.
    * @param {?string} options.logDir - The directory to store the log files in.
-   * @param {?Array<string>} [options.hosts] - The hosts of
-   * the database cluster.
+   * @param {?Array<string>} [options.hosts] - The hosts of the database cluster.
    * @param {?number} [options.dbPort] - The port the database is on.
-   * @param {?string} [options.username] - The username for the database
-   * connection.
-   * @param {?string} [options.password] - The password for the database
-   * connection.
+   * @param {?number} [options.dbName] - The name of the database.
+   * @param {?string} [options.username] - The username for the database connection.
+   * @param {?string} [options.password] - The password for the database connection.
    * @param {?number} [options.serverPort] - The port the API will run on.
    * @param {?number} [options.workers] - The number of workers for the API.
    * @param {?Object} [options.opts] - Additionl options for custom
@@ -97,6 +94,7 @@ export default class PopApi {
     logDir = defaultLogDir,
     hosts,
     dbPort,
+    dbName,
     username,
     password,
     serverPort,
@@ -107,7 +105,7 @@ export default class PopApi {
     Logger,
     Database,
     Routes,
-    HttpServer
+    HttpServer,
   ]): Promise<Object | Error> {
     PopApi.app = app
     if (isMaster) {
@@ -121,7 +119,7 @@ export default class PopApi {
         name,
         version,
         logDir,
-        database: name,
+        database: dbName || name,
         hosts,
         dbPort,
         username,
@@ -130,9 +128,10 @@ export default class PopApi {
         workers,
         argv: process.argv,
         ...PopApi.loggerArgs,
-        ...opts
+        ...opts,
       })
     })
+
     await PopApi.database.connect()
 
     return PopApi
