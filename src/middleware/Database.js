@@ -4,7 +4,7 @@ import mongoose from 'mongoose'
 import { existsSync } from 'fs'
 import {
   isAbsolute,
-  join
+  join,
 } from 'path'
 import { URL } from 'url'
 
@@ -67,8 +67,8 @@ export default class Database {
     database,
     hosts = ['localhost'],
     dbPort = 27017,
-    username,
-    password
+    username = '',
+    password = '',
   }: Object): void {
     const { name: debugName } = this.constructor
     PopApi.debug(`Registering ${debugName} middleware with options: %o`, {
@@ -76,7 +76,7 @@ export default class Database {
       hosts,
       dbPort,
       username,
-      password
+      password,
     })
 
     if (!database) {
@@ -88,16 +88,17 @@ export default class Database {
     const {
       MONGO_PORT_27017_TCP_ADDR,
       MONGO_PORT_27017_TCP_PORT,
-      NODE_ENV
+      NODE_ENV,
     } = process.env
 
+    // Remove an @ if package.name is used
     this.database = `${database}-${NODE_ENV}`
     this.hosts = MONGO_PORT_27017_TCP_ADDR
       ? [MONGO_PORT_27017_TCP_ADDR]
       : hosts
     this.dbPort = Number(MONGO_PORT_27017_TCP_PORT) || dbPort
-    this.username = username || ''
-    this.password = password || ''
+    this.username = username
+    this.password = password
 
     PopApi.database = this
   }
@@ -108,9 +109,11 @@ export default class Database {
    * database.
    */
   connect(): Promise<void> {
-    const uri = new URL(`mongodb://${this.username}:${this.password}@${this.hosts.join(',')}:${this.dbPort}/${this.database}`)
+    const uri = new URL(
+      `mongodb://${this.username}:${this.password}@${this.hosts.join(',')}:${this.dbPort}/${this.database}`,
+    )
 
-    return mongoose.connect(uri.href)
+    return mongoose.connect(uri.href, { useNewUrlParser: true, useUnifiedTopology: true })
   }
 
   /**
@@ -131,12 +134,12 @@ export default class Database {
    */
   exportFile(
     collection: string,
-    outputFile: string
+    outputFile: string,
   ): Promise<string | void> {
     return executeCommand('mongoexport', [
       '-d', this.database,
       '-c', `${collection}s`,
-      '-o', outputFile
+      '-o', outputFile,
     ])
   }
 
@@ -149,7 +152,7 @@ export default class Database {
    */
   importFile(
     collection: string,
-    jsonFile: string
+    jsonFile: string,
   ): Promise<string | void> {
     const file = !isAbsolute(jsonFile)
       ? jsonFile
@@ -164,7 +167,7 @@ export default class Database {
       '-d', this.database,
       '-c', `${collection}s`,
       '--file', jsonFile,
-      '--upsert'
+      '--upsert',
     ])
   }
 

@@ -5,22 +5,13 @@ import { join } from 'path'
  * express.js middleware for winstonjs
  * @external {ExpressWinston} https://github.com/bithavoc/express-winston
  */
-import {
-  logger as httpLogger,
-  requestWhitelist,
-  responseWhitelist
-} from '@chrisalderson/express-winston'
+import { logger as httpLogger, requestWhitelist, responseWhitelist } from '@chrisalderson/express-winston'
 import type { Middleware } from 'express'
 /**
  * a multi-transport async logging library for node.js
  * @external {Winston} https://github.com/winstonjs/winston
  */
-import {
-  type createLogger as Winston,
-  loggers,
-  format,
-  transports
-} from 'winston'
+import { type createLogger as Winston, loggers, format, transports } from 'winston'
 
 import { padStart } from './internal'
 
@@ -64,13 +55,13 @@ export default class Logger {
    * @throws {TypeError} - 'name' and 'logDir' are required options for the
    * Logger middleware!
    */
-  constructor(PopApi: any, {name, logDir, pretty, quiet}: Object): void {
+  constructor(PopApi: any, { name, logDir, pretty, quiet }: Object): void {
     const { name: debugName } = this.constructor
     PopApi.debug(`Registering ${debugName} middleware with options: %o`, {
       name,
       logDir,
       pretty,
-      quiet
+      quiet,
     })
 
     if (!name || !logDir) {
@@ -85,7 +76,7 @@ export default class Logger {
       error: 0,
       warn: 1,
       info: 2,
-      debug: 3
+      debug: 3,
     }
     /**
      * The name of the log file.
@@ -118,7 +109,7 @@ export default class Logger {
       error: '\x1b[31m',
       warn: '\x1b[33m',
       info: '\x1b[36m',
-      debug: '\x1b[34m'
+      debug: '\x1b[34m',
     }
 
     return colors[level]
@@ -140,7 +131,7 @@ export default class Logger {
       level.toUpperCase().padStart(5),
       this.name.padStart(2),
       process.pid,
-      message
+      message,
     ]
     info.message = `\x1b[0m[%s] ${c}%s:\x1b[0m %s/%d: \x1b[36m%s\x1b[0m`
 
@@ -165,7 +156,7 @@ export default class Logger {
       format.timestamp(),
       format.printf(this.prettyPrintConsole.bind(this)),
       format.splat(),
-      format.printf(this._getMessage)
+      format.printf(this._getMessage),
     )
   }
 
@@ -179,11 +170,11 @@ export default class Logger {
       format.printf(info => {
         Object.assign(info, {
           name: this.name,
-          pid: process.pid
+          pid: process.pid,
         })
         return info
       }),
-      format.json()
+      format.json(),
     )
   }
 
@@ -199,7 +190,7 @@ export default class Logger {
 
     return new transports.Console({
       name: this.name,
-      format: f
+      format: f,
     })
   }
 
@@ -214,11 +205,11 @@ export default class Logger {
         level: 'warn',
         filename: join(...[
           this.logDir,
-          `${file}.log`
+          `${file}.log`,
         ]),
         format: this.fileFormatter(),
         maxsize: 5242880,
-        handleExceptions: true
+        handleExceptions: true,
       })
     }
 
@@ -240,8 +231,8 @@ export default class Logger {
       exitOnError: false,
       transports: [
         this.getConsoleTransport(pretty),
-        this.getFileTransport(id)
-      ]
+        this.getFileTransport(id),
+      ],
     })
   }
 
@@ -268,7 +259,7 @@ export default class Logger {
       winstonInstance: logger,
       meta: true,
       msg: this.getHttpLoggerMessage,
-      statusLevels: true
+      statusLevels: true,
     }
 
     if (process.env.NODE_ENV === 'development') {
@@ -276,8 +267,8 @@ export default class Logger {
       logger.add(new Console({
         name: this.name,
         format: format.json({
-          space: 2
-        })
+          space: 2,
+        }),
       }))
 
       options.requestWhitelist = [].concat(requestWhitelist, 'body')
@@ -316,7 +307,7 @@ export default class Logger {
   getLogger(
     type?: string,
     pretty?: boolean,
-    quiet?: boolean
+    quiet?: boolean,
   ): Middleware | Winston | void {
     if (!type) {
       return undefined

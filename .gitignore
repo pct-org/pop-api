@@ -40,3 +40,6 @@ tmp
 
 # Transpiled code
 build
+
+.idea
+yarn-error.log

@@ -5,7 +5,7 @@
  * node.js command-line interfaces made easy
  * @external {Command} https://github.com/tj/commander.js
  */
-import Command from 'commander'
+import { Command } from 'commander'
 
 /**
  * Class The class for the command line interface.
@@ -42,12 +42,12 @@ export default class Cli {
    * @throw {TypeError} - 'name' and 'version' are required options for the Cli
    * middleware!
    */
-  constructor(PopApi: any, {argv, name, version}: Object): void {
+  constructor(PopApi: any, { argv, name, version }: Object): void {
     const { name: debugName } = this.constructor
     PopApi.debug(`Registering ${debugName} middleware with options: %o`, {
       argv,
       name,
-      version
+      version,
     })
 
     if (!name || !version) {
@@ -58,12 +58,14 @@ export default class Cli {
      * The command line parser to process the Cli inputs.
      * @type {Command}
      */
-    this.program = Command
+    this.program = new Command()
+
     /**
      * The name of the Cli program.
      * @type {string}
      */
     this.name = name
+
     /**
      * The version of the Cli program.
      * @type {string}
@@ -87,7 +89,7 @@ export default class Cli {
       .option(
         '-m, --mode <type>',
         'Run the API in a particular mode.',
-        /^(pretty|quiet|ugly)$/i
+        /^(pretty|quiet|ugly)$/i,
       )
   }
 
@@ -101,7 +103,7 @@ export default class Cli {
       '  Examples:',
       '',
       `    $ ${this.name} -m <pretty|quiet|ugly>`,
-      `    $ ${this.name} --mode <pretty|quiet|ugly>`
+      `    $ ${this.name} --mode <pretty|quiet|ugly>`,
     ]
   }
 
@@ -125,18 +127,18 @@ export default class Cli {
       case 'quiet':
         return {
           pretty: false,
-          quiet: true
+          quiet: true,
         }
       case 'ugly':
         return {
           pretty: false,
-          quiet: testing
+          quiet: testing,
         }
       case 'pretty':
       default:
         return {
           pretty: !testing,
-          quiet: testing
+          quiet: testing,
         }
     }
   }
