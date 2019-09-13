@@ -1,9 +1,6 @@
 // Import the necessary modules.
 // @flow
-import mongoose, {
-  Model,
-  Schema
-} from 'mongoose'
+import mongoose, { Model, Schema } from 'mongoose'
 
 /**
  * An example ES6 class for the example schema.
@@ -35,7 +32,7 @@ class ExampleModel extends Model {
    * @param {!string} slug - The slug of the example model.
    * @param {!string} name - The name of the example model.
    */
-  constructor({slug, name}: Object = {}): void {
+  constructor({ slug, name }: Object = {}): void {
     super()
 
     /**
@@ -64,18 +61,18 @@ class ExampleModel extends Model {
 const exampleSchema = new Schema({
   _id: {
     type: String,
-    required: true
+    required: true,
   },
   slug: {
     type: String,
-    required: true
+    required: true,
   },
   name: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 }, {
-  collection: 'examples'
+  collection: 'examples',
 })
 
 // Attach the class to the schema.
@@ -85,4 +82,4 @@ exampleSchema.loadClass(ExampleModel)
  * Export the model
  * @type {ExampleModel}
  */
-export default mongoose.model(ExampleModel, exampleSchema)
+export default mongoose.model('Example', exampleSchema)

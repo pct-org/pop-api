@@ -1,9 +1,4 @@
-// Import the necessary modules.
 // @flow
-/**
- * node.js command-line interfaces made easy
- * @external {Command} https://github.com/tj/commander.js
- */
 import { Command } from 'commander'
 
 /**

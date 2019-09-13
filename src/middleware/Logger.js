@@ -46,12 +46,12 @@ export default class Logger {
    * @throws {TypeError} - 'name' and 'logDir' are required options for the
    * Logger middleware!
    */
-  constructor(PopApi: any, {name, logDir, pretty}: Object): void {
+  constructor(PopApi: any, { name, logDir, pretty }: Object): void {
     const { name: debugName } = this.constructor
     PopApi.debug(`Registering ${debugName} middleware with options: %o`, {
       name,
       logDir,
-      pretty
+      pretty,
     })
 
     if (!name || !logDir) {
@@ -114,14 +114,15 @@ export default class Logger {
         timestamp,
         level.toUpperCase().padStart(5),
         this.name.padStart(2),
-        process.pid,
         message,
-        ms
+        ms,
       ]
-      info.message = `\x1b[0m[%s] ${c}%s:\x1b[0m %s/%d: \x1b[36m%s\x1b[0m \x1b[37m%s`
+
+      info.message = `\x1b[0m[%s] ${c}%s:\x1b[0m %s: \x1b[36m%s\x1b[0m \x1b[37m%s`
 
       return info
     })
+
     return enrichFmt()
   }
 
@@ -131,13 +132,9 @@ export default class Logger {
    * out of the info object.
    */
   _getMessage(): Function {
-    const MESSAGE = Symbol.for('message')
-    const msgFmt = format((info: Object): string => {
-      info[MESSAGE] = info.message
-      return info[MESSAGE]
+    return format.printf((info: Object): string => {
+      return info.message
     })
-
-    return msgFmt()
   }
 
   /**
@@ -150,7 +147,7 @@ export default class Logger {
       format.ms(),
       this.prettyPrintConsole(),
       format.splat(),
-      this._getMessage()
+      this._getMessage(),
     )
   }
 
@@ -163,8 +160,9 @@ export default class Logger {
     const enrichFmt = format(info => ({
       ...info,
       name: this.name,
-      pid: process.pid
+      pid: process.pid,
     }))
+
     return enrichFmt()
   }
 
@@ -176,7 +174,7 @@ export default class Logger {
     return format.combine(
       format.timestamp(),
       this._enrichFileFormat(),
-      format.json()
+      format.json(),
     )
   }
 
@@ -186,10 +184,11 @@ export default class Logger {
    * @returns {Object} - A configured Console transport.
    */
   getConsoleTransport(pretty?: boolean): Object {
-    const f = pretty ? this.consoleFormatter() : format.simple()
+    const format = pretty ? this.consoleFormatter() : format.simple()
+
     return new transports.Console({
       name: this.name,
-      format: f,
+      format,
     })
   }
 
@@ -203,11 +202,11 @@ export default class Logger {
       level: 'warn',
       filename: join(...[
         this.logDir,
-        `${file}.log`
+        `${file}.log`,
       ]),
       format: this.fileFormatter(),
       maxsize: 5242880,
-      handleExceptions: true
+      handleExceptions: true,
     })
   }
 
@@ -289,8 +288,10 @@ export default class Logger {
     switch (t) {
       case 'HTTP':
         return this.createHttpLogger(pretty)
+
       case 'LOGGER':
         return this.createLoggerInstance('app', pretty)
+
       default:
         return undefined
     }

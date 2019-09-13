@@ -1,8 +1,8 @@
 {
   "name": "@pct-org/pop-api",
-  "version": "0.6.3",
-  "description": "The base modules for popcorn-api",
+  "version": "0.7.0",
   "private": false,
+  "description": "The base modules for popcorn-api",
   "keywords": [
     "api",
     "middleware",
@@ -16,7 +16,7 @@
   "module": "./build/pop-api.esm.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/popcorn-official/pop-api.git"
+    "url": "https://github.com/pct-org/pop-api.git"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production rollup -c",
@@ -24,6 +24,7 @@
     "flow": "flow",
     "flow-typed": "flow-typed install",
     "lint": "eslint {example,src,test}/** *.js$",
+    "prepublish": "yarn build",
     "start:debug": "yarn start:dev --inspect",
     "start:dev": "cross-env DEBUG=pop-api* NODE_ENV=development babel-node ./examples/exampleSetup.js",
     "test": "cross-env NODE_ENV=test nyc -r=lcov -r=text mocha --exit --recursive"
@@ -41,7 +42,7 @@
     "mongoose": "^5.0.1",
     "p-map": "3.0.0",
     "response-time": "^2.3.2",
-    "winston": "^3.0.0-rc5"
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

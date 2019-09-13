@@ -91,7 +91,6 @@ export default class Database {
       NODE_ENV,
     } = process.env
 
-    // Remove an @ if package.name is used
     this.database = `${database}-${NODE_ENV}`
     this.hosts = MONGO_PORT_27017_TCP_ADDR
       ? [MONGO_PORT_27017_TCP_ADDR]
