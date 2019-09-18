@@ -1,16 +1,7 @@
-// Import the necessary modules.
 // @flow
 import { join } from 'path'
-/**
- * express.js middleware for winstonjs
- * @external {ExpressWinston} https://github.com/bithavoc/express-winston
- */
 import { logger as httpLogger, requestWhitelist, responseWhitelist } from '@chrisalderson/express-winston'
 import type { Middleware } from 'express'
-/**
- * a multi-transport async logging library for node.js
- * @external {Winston} https://github.com/winstonjs/winston
- */
 import { type createLogger as Winston, loggers, format, transports } from 'winston'
 
 /**
@@ -105,7 +96,7 @@ export default class Logger {
    * @returns {Function} - Format function to enrich the info object with the
    * modified message and splat property.
    */
-  prettyPrintConsole(): Function {
+  prettyPrint(): Function {
     const enrichFmt = format((info: Object): Object => {
       const { level, message, ms, timestamp } = info
       const c = this.getLevelColor(level)
@@ -141,40 +132,13 @@ export default class Logger {
    * Formatter method which formats the output to the console.
    * @returns {Object} - The formatter for the console transport.
    */
-  consoleFormatter(): Object {
+  getFormatter(): Object {
     return format.combine(
       format.timestamp(),
       format.ms(),
-      this.prettyPrintConsole(),
+      this.prettyPrint(),
       format.splat(),
       this._getMessage(),
-    )
-  }
-
-  /**
-   * Formatter to get add the pid and the name to the info object.
-   * @returns {Function} - Format function to add the pid and name to the info
-   * object.
-   */
-  _enrichFileFormat(): Function {
-    const enrichFmt = format(info => ({
-      ...info,
-      name: this.name,
-      pid: process.pid,
-    }))
-
-    return enrichFmt()
-  }
-
-  /**
-   * Formatter method which formats the output to the log file.
-   * @returns {Object} - The formatter for the file transport.
-   */
-  fileFormatter(): Object {
-    return format.combine(
-      format.timestamp(),
-      this._enrichFileFormat(),
-      format.json(),
     )
   }
 
@@ -184,7 +148,9 @@ export default class Logger {
    * @returns {Object} - A configured Console transport.
    */
   getConsoleTransport(pretty?: boolean): Object {
-    const format = pretty ? this.consoleFormatter() : format.simple()
+    const format = pretty
+      ? this.getFormatter()
+      : format.simple()
 
     return new transports.Console({
       name: this.name,
@@ -204,7 +170,7 @@ export default class Logger {
         this.logDir,
         `${file}.log`,
       ]),
-      format: this.fileFormatter(),
+      format: this.getFormatter(),
       maxsize: 5242880,
       handleExceptions: true,
     })
