@@ -148,13 +148,13 @@ export default class Logger {
    * @returns {Object} - A configured Console transport.
    */
   getConsoleTransport(pretty?: boolean): Object {
-    const format = pretty
+    const consoleFormat = pretty
       ? this.getFormatter()
       : format.simple()
 
     return new transports.Console({
       name: this.name,
-      format,
+      format: consoleFormat,
     })
   }
 
