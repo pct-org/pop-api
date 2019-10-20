@@ -88,10 +88,9 @@ export default class Database {
     const {
       MONGO_PORT_27017_TCP_ADDR,
       MONGO_PORT_27017_TCP_PORT,
-      NODE_ENV,
     } = process.env
 
-    this.database = `${database}-${NODE_ENV}`
+    this.database = database
     this.hosts = MONGO_PORT_27017_TCP_ADDR
       ? [MONGO_PORT_27017_TCP_ADDR]
       : hosts
@@ -112,7 +111,13 @@ export default class Database {
       `mongodb://${this.username}:${this.password}@${this.hosts.join(',')}:${this.dbPort}/${this.database}`,
     )
 
-    return mongoose.connect(uri.href, { useNewUrlParser: true, useUnifiedTopology: true })
+    return mongoose.connect(
+      uri.href,
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      },
+    )
   }
 
   /**
