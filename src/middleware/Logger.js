@@ -134,7 +134,7 @@ export default class Logger {
    */
   getFormatter(): Object {
     return format.combine(
-      format.timestamp(),
+      format.timestamp({ format: 'MM/DD/YYYY[,] hh:mm:ss A' }),
       format.ms(),
       this.prettyPrint(),
       format.splat(),
