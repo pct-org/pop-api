@@ -1,3 +1,12 @@
+# [0.9.0](https://github.com/pct-org/pop-api/compare/v0.8.0...v0.9.0) (2020-10-08)
+
+
+### Features
+
+* Use custom format when logging ([df11dbd](https://github.com/pct-org/pop-api/commit/df11dbd86d875e1c21efbdcc9e000393e6db5973))
+
+
+
 # [0.8.0](https://github.com/pct-org/pop-api/compare/v0.6.3...v0.8.0) (2019-10-20)
 
 
@@ -36,15 +45,6 @@
 
 
 ## [0.6.1](https://github.com/pct-org/pop-api/compare/v0.6.0...v0.6.1) (2017-12-29)
-
-
-
-# [0.6.0](https://github.com/pct-org/pop-api/compare/v0.5.1...v0.6.0) (2017-12-27)
-
-
-### Features
-
-* **docs:** Automatically publish documentation ([#45](https://github.com/pct-org/pop-api/issues/45)) ([7b2c93e](https://github.com/pct-org/pop-api/commit/7b2c93e2a0005aa9b2eaef20bc4272b404009cc9))
 
 
 
